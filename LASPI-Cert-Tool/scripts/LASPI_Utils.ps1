@@ -11,7 +11,7 @@ function Get-RNGSamples(){
         [Parameter(Mandatory=$true)]
         [String]$Path,
         [Parameter()]
-        [String]$Slot
+        [String]$Slot=0
     )
 
     $sample_sz = $Bytes
@@ -39,7 +39,7 @@ function Get-RNGSamples(){
         
         # for each iteration generates $batch_sz random numbers
         for($idx=0; $idx -lt $iterations; $idx++){
-            $random_bytes = pkcs11-tool.exe --generate-random $batch_sz --slot $Slot --module $module_dll
+            $random_bytes = pkcs11-tool.exe --generate-random $batch_sz --slot-index $Slot --module $module_dll
 
             if(($random_bytes.Length -gt $batch_sz) -or ($random_bytes.Length -eq 0)){
                 throw "Ocorreu um erro durante a extracao da samples. Verifique se o equipamento ensaiado esta conectado e disponivel. Verifique se a DLL foi passada corretamente e esta no PATH."
