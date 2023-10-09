@@ -18,6 +18,7 @@ New-Item -Path $OutPath -Force > $null
 
 foreach ($item in $arquivos.FullName ) {
     $hashItem = (Get-FileHash -Algorithm SHA256 $item).Hash
+    $item = $item.Split("\")[-1]
     Add-Content -Path $OutPath -Value "$item    $hashItem"
     Write-Host "$item : $hashItem"
 }
