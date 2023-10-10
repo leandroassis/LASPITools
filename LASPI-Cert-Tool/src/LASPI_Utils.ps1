@@ -113,33 +113,12 @@ function Initialize-Module(){
     $log_file = ".\Logs\Initialize-Module.log"
 
     New-Item -Path $log_file -Force > $null
-
+    
     foreach ($slot in $Slots) {
-        Add-Content -Path $log_file -Value "==============================="
         Add-Content -Path $log_file -Value "Inicializando módulo no $slot com nome $Name$slot; pin $PIN; e puk $PUK."
         pkcs11-tool.exe --module $Module --slot-index $slot --init-token  --init-pin --login --pin $PIN --so-pin $PUK --label "$Name$slot" | Add-Content -Path $log_file 
         pkcs11-tool.exe --module $Module --slot-index $slot -I | Add-Content -Path $log_file
     }
 
-    Add-Content -Path $log_file -Value "Módulos inicializados."
-}
-
-function Start-Tests(){
-    param(
-        [Paramater()]
-        [array]$Slots=@(0),
-        [Paramater(Mandatory=$true)]
-        [array]$Tests
-    )
-
-    New-Item -ItemType Directory ".\Logs" -Force
-
-    # parseia os ensaios realizados
-    # inicializa os modulos
-
-    # lista todos os mecanismos e escolhe um para assimétrico e um para simétrico
-    # todo: faz duas listas com TODOS os tipos simétricos e assimétricos, realiza a geração de todos os tipos
-
-    # cria as jobs com os ensaios
-    # serializa as jobs baseado nos slots vagos
+    Add-Content -Path $log_file -Value "Fim da função de inicialização"
 }

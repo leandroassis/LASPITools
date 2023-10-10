@@ -1,8 +1,9 @@
 import pkcs11
-from pkcs11.constants import MechanismFlag, ObjectClass
+from pkcs11.constants import ObjectClass
 import random as rd
 
-
+import subprocess, sys
+from os import getcwd
 
 def Get_Tokens(lib : pkcs11.lib) -> list:
     '''
@@ -28,63 +29,46 @@ def AcessDestroyKeys(keys : list, session : pkcs11.Session) -> bool:
                 print(e)
                 continue
             except Exception as e:
-                # captura o erro ao não conseguir destruir a chave
+                # captura o erro ao não conseguir destruir a chave (todos os tipos de chave devem cair aqui)
                 print(e)
                 continue
             else:
-                # se acessar a chave e não for lançada nenhuma exceção, retorna False caso a chave não seja pública
-                if key.object_class != ObjectClass.PUBLIC_KEY:
-                    return False
+                # se acessar e deletar a chave e não for lançada nenhuma exceção, retorna False
+                return False
 
     return True
 
-def MCII_7(token : pkcs11.Token, pin : str = "1234", puk : str = "12345678") -> bool:
+def InitializeSlots(module : str, pin : str = "1234", puk : str = "12345678", base_name : str = "ensaios", slots : list = [0]):
     '''
-        Gera uma chave simétrica, uma chave assimétrica privada e um PCS (não implementado) autenticado como usuário.
-        Após isso, tenta ler e deletar as chaves geradas em outros papéis de acesso.
+        Inicializa os slots com os tokens disponíveis.
     '''
 
-    # pega todos os mecanismos
-    mechanisms = token.slot.get_mechanisms()
+    utils_path = getcwd+"\LASPI_Utils.ps1"
+    p = subprocess.Popen(["powershell.exe", f". {utils_path}; Initialize-Module -Module {module} -PIN {pin} -PUK {puk} -Name {base_name} -Slots @"+str(slots).replace("[", "(").replace("]", ")")], stderr=sys.stderr, stdout=sys.stdout)
+    p.communicate()
 
-    # filtra os mecanismos que suportam geração de chaves/parâmetros
-    mechanisms = list(filter(lambda mechanism: token.slot.get_mechanism_info(mechanism).flags in [MechanismFlag.GENERATE, MechanismFlag.GENERATE_KEY_PAIR], mechanisms))
-    
-    user_keys = []
+    # recupera informações de todos os slots
 
-    # com uma sessão de user com r/w, gera uma chave para cada mecanismo que suporta geração de chaves
-    # todo: fazer o mesmo para PCS e certificados
-    with token.open(rw=True, user_pin=pin) as user_session:
-        for mechanism in mechanisms:
-            mech_info = token.slot.get_mechanism_info(mechanism) # pega as informações do mecanismo
-            try:
-                # tenta gerar uma chave para o mecanismo
-                if mech_info.flags == MechanismFlag.GENERATE:
-                    user_keys.append(user_session.generate_key(label=f"chave{len(user_keys)}", \
-                                                            store=True, mechanism=mechanism, \
-                                                            id=rd.randbytes(10), \
-                                                            key_length = mech_info.max_key_size))
-                elif mech_info.flags == MechanismFlag.GENERATE_KEY_PAIR:
-                    user_keys.append(user_session.generate_keypair(label=f"chave{len(user_keys)}", \
-                                                            store=True, mechanism=mechanism, \
-                                                            id=rd.randbytes(10), \
-                                                            key_length = mech_info.max_key_size))
-            except pkcs11.exceptions.MechanismInvalid:
-                continue
+'''
+To DO: Repassar ideia para o python
 
-    # com um sessão de SO com r/w, tenta acessar e deletar as chaves geradas
-    with token.open(rw=True, so_pin=puk) as so_session:
-        status = AcessDestroyKeys(user_keys, so_session)
+function Start-Tests(){
+    param(
+        [Paramater()]
+        [array]$Slots=@(0),
+        [Paramater(Mandatory=$true)]
+        [array]$Tests
+    )
 
-    # com um sessãonão autenticada com r/w, tenta acessar e deletar as chaves geradas
-    with token.open(rw=True) as noauth_session:
-        status = AcessDestroyKeys(user_keys, noauth_session)
-                
-    # limpa todos os objetos criados do token
-    with token.open(rw=True, user_pin=pin) as user_session:
-        status = AcessDestroyKeys(user_keys, user_session)
-        
+    New-Item -ItemType Directory ".\Logs" -Force
 
-    
+    # parseia os ensaios realizados
+    # inicializa os modulos
 
-    
+    # lista todos os mecanismos e escolhe um para assimétrico e um para simétrico
+    # todo: faz duas listas com TODOS os tipos simétricos e assimétricos, realiza a geração de todos os tipos
+
+    # cria as jobs com os ensaios
+    # serializa as jobs baseado nos slots vagos
+}
+'''
