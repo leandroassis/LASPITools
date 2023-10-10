@@ -1,4 +1,5 @@
 from pkcs11.mechanisms import Mechanism
+from pkcs11 import Token
 
 # todo: remover todos os mecanismos que não fazem sentido no contexto das certificações
 APPROVED_KEY_GEN_MECHANISMS = [
@@ -35,3 +36,18 @@ APPROVED_PARAM_GEN_MECHANISMS = [
     Mechanism.DH_PKCS_PARAMETER_GEN,
     Mechanism.X9_42_DH_PARAMETER_GEN
 ]
+
+class Ensaios():
+    def __init__(self, name : str, token : Token, function, **kwargs):
+        self.name = name
+        self.function = function
+        self.pin = kwargs["pin"]
+        self.puk = kwargs["puk"]
+        self.token = token
+
+    def run_test(self):
+
+        self.function(self.kwargs)
+
+REQUISITOS = []
+
