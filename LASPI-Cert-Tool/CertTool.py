@@ -4,6 +4,7 @@ import os
 
 from src.Requirements import ParseRequirements
 from src.defines import COLUMN_WIDTH, COLUMN_SEPARATOR, END_SECTION_LINE, REQS_POR_LINHA
+from src.Utils import InitializeSlots
 
 if __name__ == '__main__':
     os.system("cls") # clear the screen
@@ -19,6 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--version', action='version', version='%(prog)s Release 1.0')
     parser.add_argument('-r', '--requirements', nargs="+", type=str, help='Requirements to be tested (e.g. -r II.7, II.9, II.10-II.15', default=["All"])
     parser.add_argument('-t', '--type', nargs=1, type=str, help='Type of module to be tested (e.g. -t token, -t card)', default=["token"])
+    parser.add_argument('-i', '--initialize', help='Initialize the token(s)', default=False, action='store_true')
 
     arguments = parser.parse_args()
     print(arguments)
@@ -90,15 +92,19 @@ if __name__ == '__main__':
     print(" Conjunto de ensaios ".center(COLUMN_WIDTH, COLUMN_SEPARATOR))
     print()
     
+    str_requirements = ""
     for idx, requirement in enumerate(requirements):
         if idx%REQS_POR_LINHA == 0 and idx != 0:
-            print()
-        print(requirement, end=" ")
-        print() if idx == len(requirements)-1 else None
+            str_requirements += "\n"
+        str_requirements += requirement
+        str_requirements += "" if idx == len(requirements)-1 else ", "
+    
+    print(str_requirements)
 
     print(END_SECTION_LINE)
     '''
     END REQUIRIMENTS SECTION
     '''
 
-    
+    if arguments.initialize:
+        InitializeSlots(arguments.module, arguments.pin, arguments.puk, arguments.name, arguments.slots)

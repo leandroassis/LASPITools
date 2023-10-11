@@ -42,13 +42,18 @@ def InitializeSlots(module : str, pin : str = "1234", puk : str = "12345678", ba
     '''
         Inicializa os slots com os tokens disponíveis.
     '''
+    str_slots = str(slots).replace("[", "").replace("]", "")
+    if len(slots) != 1:
+        print(f"Inicializando os slots {str_slots} ...")
+    else:
+        print(f"Inicializando o slot {str_slots} ...")
 
-    utils_path = getcwd+"\LASPI_Utils.ps1"
+    utils_path = getcwd()+"\src\LASPI_Utils.ps1"
+    #print(["powershell.exe", f". {utils_path}; Initialize-Module -Module {module} -PIN {pin} -PUK {puk} -Name {base_name} -Slots @"+str(slots).replace("[", "(").replace("]", ")")])
     p = subprocess.Popen(["powershell.exe", f". {utils_path}; Initialize-Module -Module {module} -PIN {pin} -PUK {puk} -Name {base_name} -Slots @"+str(slots).replace("[", "(").replace("]", ")")], stderr=sys.stderr, stdout=sys.stdout)
     p.communicate()
 
-    # recupera informações de todos os slots
-        
+    print("Fim da inicialização dos slots. Verifique o arquivo de log \"Logs\\Initialize-Module.log\" para mais informações.")
 
 '''
 To DO: Repassar ideia para o python
