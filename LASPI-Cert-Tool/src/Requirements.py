@@ -3,14 +3,16 @@ from pkcs11.constants import MechanismFlag
 from pkcs11.mechanisms import Mechanism
 import random as rd
 
-from defines import APPROVED_KEY_GEN_MECHANISMS, APPROVED_CERT_GEN_MECHANISMS, APPROVED_PARAM_GEN_MECHANISMS
-from Utils import AcessDestroyKeys
+from src.defines import APPROVED_KEY_GEN_MECHANISMS, APPROVED_CERT_GEN_MECHANISMS, APPROVED_PARAM_GEN_MECHANISMS
+from src.Utils import AcessDestroyKeys
 
 # TO DO: ADICIONAR INFORMAÇÕES DE LOG EM TODOS AS FUNÇÕES
 
 
-# REQUISITO MC II.7 (cartão) e I.16, I.26, I.27 (token)
-def MCII_7_E_8(token : pkcs11.Token, pin : str = "1234", puk : str = "12345678") -> bool:
+'''
+    TESTS DEFINE SECTION
+'''
+def testsAccessObjects(token : pkcs11.Token, pin : str = "1234", puk : str = "12345678") -> bool:
     '''
         Gera uma chave simétrica, uma par assimétrico e um PCS (não implementado) autenticado como usuário.
         Após isso, tenta ler e deletar as chaves geradas em outros papéis de acesso.
@@ -56,9 +58,7 @@ def MCII_7_E_8(token : pkcs11.Token, pin : str = "1234", puk : str = "12345678")
     with token.open(rw=True, user_pin=pin) as user_session:
         status = AcessDestroyKeys(user_keys, user_session)
 
-
-# I.34 (token)
-def MCII_11(token : pkcs11.Token, pin : str = "1234") -> bool:
+def verifyApprovedMechanisms(token : pkcs11.Token, pin : str = "1234") -> bool:
 
     with token.open(user_pin=pin) as user_session:
 
@@ -118,3 +118,44 @@ def I_58(token : pkcs11.Token, pin : str = "1234", puk : str = "12345678") -> bo
 # I.59, I.60, 61, 62, 63, 64, 65, 66, 
 # II.7, 10, 15, 16
 # IV.3, 4
+
+REQUISITOS_CARTAO = {"II.7": testsAccessObjects, "II.8": testsAccessObjects, "II.11": verifyApprovedMechanisms }
+REQUISITOS_TOKEN = {"I.16": testsAccessObjects, "I.26": testsAccessObjects, "I.27": testsAccessObjects, "I.34": verifyApprovedMechanisms}
+'''
+    END TESTS DEFINE SECTION
+'''
+
+'''
+    GENERAL SECTION
+'''
+def ParseRequirements(requirements : list, hw_type : str) -> list:
+    '''
+        Recebe uma lista de requisitos e retorna uma lista de str com o nome de cada requisito.
+    '''
+
+    if hw_type.lower() == "token":
+        all_requirements = REQUISITOS_TOKEN
+    elif hw_type.lower() == "card":
+        all_requirements = REQUISITOS_CARTAO
+    else:
+        raise Exception("Tipo de hardware não suportado: " + hw_type)
+
+    if requirements == "All":
+        return all_requirements
+    requirements_parsed = []
+
+    for item in requirements:
+        if item.find("-") == -1: # se não encontrar o caractere "-", adiciona
+            requirements_parsed.append(item)
+            continue
+
+        requirement_interval = item.split("-")
+        if len(requirement_interval) < 2: # se não tiver pelo menos 2 elementos, retorna erro
+            raise Exception("Requisito final não específicado no intervalo: " + item)
+        # só suporta intervalos de requisitos com 2 elementos (ex: II.7-II.9)
+        # caso tenha mais de 2, serão considerados o primeiro e o último elemento (ex: II.7-II.9-II.10-II.15 == II.7-II.15)
+        right = requirement_interval[0].split(".")[-1]
+        left = requirement_interval[-1].split(".")[-1]
+'''
+    END GENERAL SECTION
+'''

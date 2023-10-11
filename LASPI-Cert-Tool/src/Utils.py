@@ -4,7 +4,6 @@ import random as rd
 
 import subprocess, sys
 from os import getcwd
-from src.defines import REQUISITOS
 
 def Get_Tokens(lib : pkcs11.lib) -> list:
     '''
@@ -49,29 +48,6 @@ def InitializeSlots(module : str, pin : str = "1234", puk : str = "12345678", ba
     p.communicate()
 
     # recupera informações de todos os slots
-
-def ParseRequirements(requirements : list) -> list:
-    '''
-        Recebe uma lista de requisitos e retorna uma lista de tuplas com os requisitos e suas versões.
-    '''
-
-    if requirements == "All":
-        return REQUISITOS
-    requirements_parsed = []
-
-    for item in requirements:
-        if item.find("-") == -1: # se não encontrar o caractere "-", adiciona
-            requirements_parsed.append(item)
-            continue
-
-        requirement_interval = item.split("-")
-        if len(requirement_interval) < 2: # se não tiver pelo menos 2 elementos, retorna erro
-            raise Exception("Requisito final não específicado no intervalo: " + item)
-        # só suporta intervalos de requisitos com 2 elementos (ex: II.7-II.9)
-        # caso tenha mais de 2, serão considerados o primeiro e o último elemento (ex: II.7-II.9-II.10-II.15 == II.7-II.15)
-        right = requirement_interval[0].split(".")[-1]
-        left = requirement_interval[-1].split(".")[-1]
-
         
 
 '''
