@@ -58,11 +58,12 @@ def testsAccessObjects(token : pkcs11.Token, pin : str = "1234", puk : str = "12
     with token.open(rw=True, user_pin=pin) as user_session:
         status = AcessDestroyKeys(user_keys, user_session)
 
-def verifyApprovedMechanisms(token : pkcs11.Token, pin : str = "1234") -> bool:
+def verifyApprovedMechanisms(token : pkcs11.Token, pin : str = "1234", puk = None) -> bool:
 
     with token.open(user_pin=pin) as user_session:
 
         mechanisms = token.slot.get_mechanisms() # pega todos os mecanismos
+        print(mechanisms)
 
         # filtra os mecanismos que suportam geração de chaves/parâmetros/certificados
         mechanisms = list(filter(lambda mechanism: token.slot.get_mechanism_info(mechanism).flags in [MechanismFlag.GENERATE, MechanismFlag.GENERATE_KEY_PAIR], mechanisms))
@@ -118,6 +119,10 @@ def I_58(token : pkcs11.Token, pin : str = "1234", puk : str = "12345678") -> bo
 # I.59, I.60, 61, 62, 63, 64, 65, 66, 
 # II.7, 10, 15, 16
 # IV.3, 4
+
+def dummy(token : pkcs11.Token, pin : str = "1234", puk : str = "12345678") -> bool:
+    print("Dummy function called.")
+    return True
 
 REQUISITOS_CARTAO = {"II.7": testsAccessObjects, "II.8": testsAccessObjects, "II.11": verifyApprovedMechanisms }
 REQUISITOS_TOKEN = {"I.16": testsAccessObjects, "I.26": testsAccessObjects, "I.27": testsAccessObjects, "I.34": verifyApprovedMechanisms}

@@ -1,31 +1,36 @@
 import argparse
 import pkcs11
-import os
+import os, sys
+from threading import Thread, Lock
 
 from src.Requirements import ParseRequirements
 from src.defines import COLUMN_WIDTH, COLUMN_SEPARATOR, END_SECTION_LINE, REQS_POR_LINHA
 from src.Utils import InitializeSlots
+from src.Ensaio import Ensaio
 
 if __name__ == '__main__':
-    os.system("cls") # clear the screen
-
     # parse arguments
     parser = argparse.ArgumentParser(description='Ferramenta desenvolvida por Leandro A. (leandro@laspi.ufrj.br)', prog="python CertTool.py")
 
-    parser.add_argument('-m', '--module', type=str, help='Module to be tested', required=True)
-    parser.add_argument('--pin', nargs="?", default="1234", type=str, help='User\'s PIN')
-    parser.add_argument('--puk', nargs="?", default="12345678", type=str, help='User PUK')
-    parser.add_argument('-n', '--name', type=str, nargs="?", default="ensaios", help='Base name for the token(s) labels.')
-    parser.add_argument('-s', '--slots', type=int, nargs='+', help='Slots to be tested (e.g. -s 0, 1, 2, 3)', default=[0])
+    parser.add_argument('-m', '--module', type=str, help='PKCS#11 dll to interface with modules.', required=True)
+    parser.add_argument('--pin', nargs=1, default="1234", type=str, help='User\'s PIN.')
+    parser.add_argument('--puk', nargs=1, default="12345678", type=str, help='User PUK.')
+    parser.add_argument('-n', '--name', type=str, nargs=1, default="ensaios", help='Base name for the token(s) labels.')
+    parser.add_argument('-s', '--slots', type=int, nargs='+', help='Slots to be tested (e.g. -s 0, 1, 2, 3).', default=[0])
     parser.add_argument('--version', action='version', version='%(prog)s Release 1.0')
-    parser.add_argument('-r', '--requirements', nargs="+", type=str, help='Requirements to be tested (e.g. -r II.7, II.9, II.10-II.15', default=["All"])
-    parser.add_argument('-t', '--type', nargs=1, type=str, help='Type of module to be tested (e.g. -t token, -t card)', default=["token"])
-    parser.add_argument('-i', '--initialize', help='Initialize the token(s)', default=False, action='store_true')
+    parser.add_argument('-r', '--requirements', nargs="+", type=str, help='Requirements to be tested (e.g. -r II.7, II.9, II.10-II.15).', default=["All"])
+    parser.add_argument('-t', '--type', nargs=1, type=str, help='Type of module to be tested (e.g. -t token, -t card).', default=["token"])
+    parser.add_argument('-i', '--initialize', help='Initialize the token(s).', default=False, action='store_true')
+    parser.add_argument('--redirect', help='Redirects the output to a file.', default=None, nargs=1, type=str)
 
     arguments = parser.parse_args()
+    os.system("cls") # clean the screen
     print(arguments)
     print()
     
+    if(arguments.redirect != None):
+        sys.stdout = open(arguments.redirect[0], "w", encoding="utf-8")
+
     '''
     LIBRARY SECTION
     '''
@@ -109,10 +114,26 @@ if __name__ == '__main__':
     print(" Início das operações ".center(COLUMN_WIDTH, COLUMN_SEPARATOR))
     print()
 
+    # initialize the slots
     if arguments.initialize:
         print(" Inicialização dos módulos ".center(COLUMN_WIDTH, COLUMN_SEPARATOR))
         print()
         InitializeSlots(arguments.module, arguments.pin, arguments.puk, arguments.name, arguments.slots)
         print(END_SECTION_LINE)
+
+    # creates a dictionary of tokens and locks
+    tokens = {}
+    for slot in slots:
+        tokens[Lock()] = slot.get_token()
+    
+    # creates the Ensaio objects and the threads for each requirement
+    threads = []
+    for ensaio in list(map(lambda x : Ensaio(x, arguments.type[0], pin=arguments.pin, puk=arguments.puk), requirements)):
+        threads.append(Thread(target=ensaio, args=(tokens,)))
+        threads[-1].start() # starts the thread
+
+    # waits for all threads to finish
+    for thread in threads:
+        thread.join()
 
     print(" Fim das operações ".center(COLUMN_WIDTH, COLUMN_SEPARATOR))
