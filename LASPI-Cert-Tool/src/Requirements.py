@@ -140,8 +140,9 @@ def ParseRequirements(requirements : list, hw_type : str) -> list:
     else:
         raise Exception("Tipo de hardware não suportado: " + hw_type)
 
-    if requirements == "All":
-        return all_requirements
+    if len(requirements) == 1 and requirements[-1] == "All":
+        return all_requirements.keys()
+    
     requirements_parsed = []
 
     for item in requirements:
@@ -150,12 +151,33 @@ def ParseRequirements(requirements : list, hw_type : str) -> list:
             continue
 
         requirement_interval = item.split("-")
+        # só suporta intervalos de requisitos com 2 elementos (ex: II.7-II.9)
         if len(requirement_interval) < 2: # se não tiver pelo menos 2 elementos, retorna erro
             raise Exception("Requisito final não específicado no intervalo: " + item)
-        # só suporta intervalos de requisitos com 2 elementos (ex: II.7-II.9)
+        
+        # não suporta intervalos que comecem em um conjunto e termine em outro (ex: I.1-II.3)        
+        left_set = requirement_interval[0].split(".")[0]
+        right_set = requirement_interval[-1].split(".")[0]
+
+        if left_set != right_set:
+            raise Exception("Intervalo de requisitos não suportado: " + item)
+        
         # caso tenha mais de 2, serão considerados o primeiro e o último elemento (ex: II.7-II.9-II.10-II.15 == II.7-II.15)
-        right = requirement_interval[0].split(".")[-1]
-        left = requirement_interval[-1].split(".")[-1]
+        try:
+            left = int(requirement_interval[0].split(".")[-1])
+            right = int(requirement_interval[-1].split(".")[-1])
+
+            if left > right:
+                left, right = right, left
+        except ValueError:
+            raise Exception("Requisito não numérico: " + item)
+        else:
+            # adiciona todos os requisitos do intervalo
+            for i in range(left, right+1):
+                # ignora requisitos que tenham mais de um digito (ex: II.10.1 == II.10)
+                requirements_parsed.append(left_set + "." + str(i))
+
+    return requirements_parsed
 '''
     END GENERAL SECTION
 '''

@@ -3,7 +3,7 @@ import pkcs11
 import os
 
 from src.Requirements import ParseRequirements
-from src.defines import COLUMN_WIDTH, COLUMN_SEPARATOR, END_SECTION_LINE
+from src.defines import COLUMN_WIDTH, COLUMN_SEPARATOR, END_SECTION_LINE, REQS_POR_LINHA
 
 if __name__ == '__main__':
     os.system("cls") # clear the screen
@@ -17,8 +17,8 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--name', type=str, nargs="?", default="ensaios", help='Base name for the token(s) labels.')
     parser.add_argument('-s', '--slots', type=int, nargs='+', help='Slots to be tested (e.g. -s 0, 1, 2, 3)', default=[0])
     parser.add_argument('--version', action='version', version='%(prog)s Release 1.0')
-    parser.add_argument('-r', '--requirements', nargs="+", type=str, help='Requirements to be tested (e.g. -r II.7, II.9, II.10-II.15', default="All")
-    parser.add_argument('-t', '--type', nargs=1, type=str, help='Type of test to be performed (e.g. -t token, -t card)', default="token")
+    parser.add_argument('-r', '--requirements', nargs="+", type=str, help='Requirements to be tested (e.g. -r II.7, II.9, II.10-II.15', default=["All"])
+    parser.add_argument('-t', '--type', nargs=1, type=str, help='Type of module to be tested (e.g. -t token, -t card)', default=["token"])
 
     arguments = parser.parse_args()
     print(arguments)
@@ -85,8 +85,20 @@ if __name__ == '__main__':
     REQUIRIMENTS SECTION
     '''
     # parses the requirements
-    requirements = ParseRequirements(arguments.requirements, arguments.type)
+    requirements = ParseRequirements(arguments.requirements, arguments.type[0])
+    
+    print(" Conjunto de ensaios ".center(COLUMN_WIDTH, COLUMN_SEPARATOR))
+    print()
+    
+    for idx, requirement in enumerate(requirements):
+        if idx%REQS_POR_LINHA == 0 and idx != 0:
+            print()
+        print(requirement, end=" ")
+        print() if idx == len(requirements)-1 else None
 
+    print(END_SECTION_LINE)
     '''
     END REQUIRIMENTS SECTION
     '''
+
+    
