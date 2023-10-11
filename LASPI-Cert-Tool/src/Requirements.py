@@ -177,6 +177,14 @@ def ParseRequirements(requirements : list, hw_type : str) -> list:
                 # ignora requisitos que tenham mais de um digito (ex: II.10.1 == II.10)
                 requirements_parsed.append(left_set + "." + str(i))
 
+    # remove requisitos duplicados
+    requirements_parsed = list(set(requirements_parsed))
+
+    # verifica se todos os requisitos existem
+    for requirement in requirements_parsed:
+        if requirement not in all_requirements.keys():
+            raise Exception("Requisito não existente: " + requirement)
+
     return requirements_parsed
 '''
     END GENERAL SECTION
