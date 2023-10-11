@@ -49,7 +49,6 @@ def InitializeSlots(module : str, pin : str = "1234", puk : str = "12345678", ba
         print(f"Inicializando o slot {str_slots} ...")
 
     utils_path = getcwd()+"\src\LASPI_Utils.ps1"
-    #print(["powershell.exe", f". {utils_path}; Initialize-Module -Module {module} -PIN {pin} -PUK {puk} -Name {base_name} -Slots @"+str(slots).replace("[", "(").replace("]", ")")])
     p = subprocess.Popen(["powershell.exe", f". {utils_path}; Initialize-Module -Module {module} -PIN {pin} -PUK {puk} -Name {base_name} -Slots @"+str(slots).replace("[", "(").replace("]", ")")], stderr=sys.stderr, stdout=sys.stdout)
     p.communicate()
 

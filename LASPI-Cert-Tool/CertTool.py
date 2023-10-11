@@ -106,5 +106,13 @@ if __name__ == '__main__':
     END REQUIRIMENTS SECTION
     '''
 
+    print(" Início das operações ".center(COLUMN_WIDTH, COLUMN_SEPARATOR))
+    print()
+
     if arguments.initialize:
+        print(" Inicialização dos módulos ".center(COLUMN_WIDTH, COLUMN_SEPARATOR))
+        print()
         InitializeSlots(arguments.module, arguments.pin, arguments.puk, arguments.name, arguments.slots)
+        print(END_SECTION_LINE)
+
+    print(" Fim das operações ".center(COLUMN_WIDTH, COLUMN_SEPARATOR))
