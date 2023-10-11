@@ -115,10 +115,10 @@ function Initialize-Module(){
     New-Item -Path $log_file -Force > $null
     
     foreach ($slot in $Slots) {
-        Add-Content -Path $log_file -Value "Inicializando módulo no $slot com nome $Name$slot; pin $PIN; e puk $PUK."
-        pkcs11-tool.exe --module $Module --slot-index $slot --init-token  --init-pin --login --pin $PIN --so-pin $PUK --label "$Name$slot" | Add-Content -Path $log_file 
+        "Inicializando modulo no slot $slot com nome $Name$slot; pin $PIN; e puk $PUK." >> $log_file
+        pkcs11-tool.exe --module $Module --slot-index $slot --init-token  --init-pin --login --pin $PIN --so-pin $PUK --label "$Name$slot" *>> $log_file 
         pkcs11-tool.exe --module $Module --slot-index $slot -I | Add-Content -Path $log_file
     }
 
-    Add-Content -Path $log_file -Value "Fim da função de inicialização"
+    Add-Content -Path $log_file -Value "Fim da funcao de inicializacao."
 }
