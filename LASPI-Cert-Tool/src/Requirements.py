@@ -2,8 +2,9 @@ import pkcs11
 from pkcs11.constants import MechanismFlag
 from pkcs11.mechanisms import Mechanism
 import random as rd
+from time import sleep
 
-from src.defines import APPROVED_KEY_GEN_MECHANISMS, APPROVED_CERT_GEN_MECHANISMS, APPROVED_PARAM_GEN_MECHANISMS
+from .defines import APPROVED_MECHANISMS
 from src.Utils import AcessDestroyKeys
 
 # TO DO: ADICIONAR INFORMAÇÕES DE LOG EM TODOS AS FUNÇÕES
@@ -17,40 +18,55 @@ def testsAccessObjects(token : pkcs11.Token, pin : str = "1234", puk : str = "12
         Gera uma chave simétrica, uma par assimétrico e um PCS (não implementado) autenticado como usuário.
         Após isso, tenta ler e deletar as chaves geradas em outros papéis de acesso.
     '''
-
+    
     # pega todos os mecanismos
-    mechanisms = token.slot.get_mechanisms()
+    print("Obtendo mecanismos suportados pelo módulo.")
+    mechanisms = list(token.slot.get_mechanisms())
 
     # filtra os mecanismos que suportam geração de chaves/parâmetros
-    mechanisms = list(filter(lambda mechanism: token.slot.get_mechanism_info(mechanism).flags in [MechanismFlag.GENERATE, MechanismFlag.GENERATE_KEY_PAIR], mechanisms))
-    
-    user_keys = []
+    for idx, mechanism in enumerate(mechanisms):
+        flags = token.slot.get_mechanism_info(mechanism).flags
+        if (MechanismFlag.GENERATE) not in flags and (MechanismFlag.GENERATE_KEY_PAIR not in flags):
+            if mechanism not in APPROVED_MECHANISMS.keys():
+                mechanisms.pop(idx)
+
+    print("Mecanismos obtidos.")
 
     # com uma sessão de user com r/w, gera uma chave para cada mecanismo que suporta geração de chaves
     # todo: fazer o mesmo para PCS e certificados
+    user_keys = []
     with token.open(rw=True, user_pin=pin) as user_session:
         for mechanism in mechanisms:
-            mech_info = token.slot.get_mechanism_info(mechanism) # pega as informações do mecanismo
+            mech_info = token.slot.get_mechanism_info(mechanism)
             try:
-                # tenta gerar uma chave para o mecanismo
-                if mech_info.flags == MechanismFlag.GENERATE:
-                    user_keys.append(user_session.generate_key(label=f"chave{len(user_keys)}", \
-                                                            store=True, mechanism=mechanism, \
-                                                            id=rd.randbytes(10), \
-                                                            key_length = mech_info.max_key_size))
-                elif mech_info.flags == MechanismFlag.GENERATE_KEY_PAIR:
-                    user_keys.append(user_session.generate_keypair(label=f"chave{len(user_keys)}", \
-                                                            store=True, mechanism=mechanism, \
-                                                            id=rd.randbytes(10), \
-                                                            key_length = mech_info.max_key_size))
-            except pkcs11.exceptions.MechanismInvalid:
-                continue
+                # tenta gerar uma chave com o mecanismo
+                label = f"chave{len(user_keys)}"
+                if MechanismFlag.GENERATE in mech_info.flags:
+                    secret_key = user_session.generate_key(APPROVED_MECHANISMS[mechanism], \
+                                                                label=label, \
+                                                                store=False, mechanism=mechanism, \
+                                                                key_length = mech_info.max_key_length)
+                    user_keys.append(secret_key)
+                elif MechanismFlag.GENERATE_KEY_PAIR in mech_info.flags:
+                    public_key, private_key = user_session.generate_keypair(APPROVED_MECHANISMS[mechanism], \
+                                                                   label=label, \
+                                                                   store=False, mechanism=mechanism, \
+                                                                   key_length = mech_info.max_key_length)
+                    user_keys.append(private_key)
+                    user_keys.append(public_key)
 
+                print(f"Chave \"{label}\" gerada com o mecanismo {str(mechanism)}.")
+            except pkcs11.exceptions.MechanismInvalid:
+                    continue
+            except Exception as e:
+                print(e)
+
+    print(user_keys)
     # com um sessão de SO com r/w, tenta acessar e deletar as chaves geradas
     with token.open(rw=True, so_pin=puk) as so_session:
         status = AcessDestroyKeys(user_keys, so_session)
 
-    # com um sessãonão autenticada com r/w, tenta acessar e deletar as chaves geradas
+    # com um asessão não autenticada com r/w, tenta acessar e deletar as chaves geradas
     with token.open(rw=True) as noauth_session:
         status = AcessDestroyKeys(user_keys, noauth_session)
                 
@@ -69,7 +85,7 @@ def verifyApprovedMechanisms(token : pkcs11.Token, pin : str = "1234", puk = Non
         mechanisms = list(filter(lambda mechanism: token.slot.get_mechanism_info(mechanism).flags in [MechanismFlag.GENERATE, MechanismFlag.GENERATE_KEY_PAIR], mechanisms))
 
         for mechanism in mechanisms:
-            if mechanism not in APPROVED_CERT_GEN_MECHANISMS or mechanism not in APPROVED_PARAM_GEN_MECHANISMS or mechanism not in APPROVED_KEY_GEN_MECHANISMS:
+            if mechanism not in APPROVED_MECHANISMS:
                 return False
             
     return True
@@ -119,10 +135,6 @@ def I_58(token : pkcs11.Token, pin : str = "1234", puk : str = "12345678") -> bo
 # I.59, I.60, 61, 62, 63, 64, 65, 66, 
 # II.7, 10, 15, 16
 # IV.3, 4
-
-def dummy(token : pkcs11.Token, pin : str = "1234", puk : str = "12345678") -> bool:
-    print("Dummy function called.")
-    return True
 
 REQUISITOS_CARTAO = {"II.7": testsAccessObjects, "II.8": testsAccessObjects, "II.11": verifyApprovedMechanisms }
 REQUISITOS_TOKEN = {"I.16": testsAccessObjects, "I.26": testsAccessObjects, "I.27": testsAccessObjects, "I.34": verifyApprovedMechanisms}

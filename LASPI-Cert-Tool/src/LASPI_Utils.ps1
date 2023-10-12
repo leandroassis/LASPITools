@@ -110,7 +110,7 @@ function Initialize-Module(){
         [array]$Slots=@(0)
     )
 
-    $log_file = ".\Logs\Initialize-Module.log"
+    $log_file = ".\logs\Initialize-Module.log"
 
     New-Item -Path $log_file -Force > $null
     

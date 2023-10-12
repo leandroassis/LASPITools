@@ -17,25 +17,31 @@ def AcessDestroyKeys(keys : list, session : pkcs11.Session) -> bool:
         Recebe uma lista de chaves e tenta acessá-las e destruí-las.
         Retorna True se não conseguir acessar e destruir nenhuma chave, False caso contrário.
     '''
+
+    print(f"Sessão de {str(session.user_type)} aberta com r/w.")
+
     for key in keys:
             try:
                 # veja get_objects quando for implementar a parte de certificados e parâmetros
-
+                print(f"Tentando acessar a chave {key.label} de id {key.id} do tipo {key.key_type}.")
                 # tenta acessar a chave
                 key_retrieved = session.get_key(label=key.label, id=key.id, key_type=key.key_type, object_class=key.object_class)
+
+                print(f"Tentando destruir a chave {key.label} de id {key.id} do tipo {key.key_type}.")
                 key_retrieved.destroy() # tenta deletar a chave
-            except pkcs11.exceptions.NoSuchKey as e:
+            except pkcs11.exceptions.NoSuchKey:
                 # captura o erro ao não achar a chave
-                print(e)
+                print("Chave não encontrada.")
                 continue
             except Exception as e:
                 # captura o erro ao não conseguir destruir a chave (todos os tipos de chave devem cair aqui)
-                print(e)
+                print("Não foi possível destruir a chave.")
                 continue
             else:
                 # se acessar e deletar a chave e não for lançada nenhuma exceção, retorna False
-                return False
+                print(f"Chave {key.label} de id {key.id} do tipo {key.key_type} acessada e destruída.")
 
+    print(f"Sessão de {str(session.user_type)} fechada.")
     return True
 
 def InitializeSlots(module : str, pin : str = "1234", puk : str = "12345678", base_name : str = "ensaios", slots : list = [0]):

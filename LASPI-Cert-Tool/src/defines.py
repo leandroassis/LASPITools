@@ -1,43 +1,20 @@
 from pkcs11.mechanisms import Mechanism
+from pkcs11.mechanisms import KeyType
 
 '''
     MECHANISM SECTION
 '''
-# todo: remover todos os mecanismos que não fazem sentido no contexto das certificações
-APPROVED_KEY_GEN_MECHANISMS = [
-    Mechanism.RSA_PKCS_KEY_PAIR_GEN,
-    Mechanism.RSA_X9_31_KEY_PAIR_GEN,
-    Mechanism.DSA_KEY_PAIR_GEN,
-    Mechanism.DH_PKCS_KEY_PAIR_GEN,
-    Mechanism.X9_42_DH_KEY_PAIR_GEN,
-    Mechanism.DES2_KEY_GEN,
-    Mechanism.DES3_KEY_GEN,
-    Mechanism.SECURID_KEY_GEN,
-    Mechanism.HOTP_KEY_GEN,
-    Mechanism.ACTI_KEY_GEN,
-    Mechanism.GENERIC_SECRET_KEY_GEN,
-    Mechanism.SSL3_PRE_MASTER_KEY_GEN,
-    Mechanism.TLS_PRE_MASTER_KEY_GEN,
-    Mechanism.WTLS_PRE_MASTER_KEY_GEN,
-    Mechanism.SEED_KEY_GEN,
-    Mechanism.EC_KEY_PAIR_GEN,
-    Mechanism.AES_KEY_GEN,
-    Mechanism.BLOWFISH_KEY_GEN,
-    Mechanism.TWOFISH_KEY_GEN,
-    Mechanism.GOSTR3410_KEY_PAIR_GEN,
-    Mechanism.GOST28147_KEY_GEN,
-    Mechanism.EC_EDWARDS_KEY_PAIR_GEN
-]
-
-APPROVED_CERT_GEN_MECHANISMS = [
-
-]
-
-APPROVED_PARAM_GEN_MECHANISMS = [
-    Mechanism.DSA_PARAMETER_GEN,
-    Mechanism.DH_PKCS_PARAMETER_GEN,
-    Mechanism.X9_42_DH_PARAMETER_GEN
-]
+APPROVED_MECHANISMS = {
+    Mechanism.RSA_PKCS_KEY_PAIR_GEN:KeyType.RSA,
+    Mechanism.DSA_KEY_PAIR_GEN:KeyType.DSA,
+    Mechanism.DH_PKCS_KEY_PAIR_GEN:KeyType.DH,
+    Mechanism.DES2_KEY_GEN:KeyType.DES2,
+    Mechanism.DES3_KEY_GEN:KeyType.DES3,
+    Mechanism.EC_KEY_PAIR_GEN:KeyType.EC,
+    Mechanism.AES_KEY_GEN:KeyType.AES,
+    Mechanism.EC_EDWARDS_KEY_PAIR_GEN:KeyType.EC_EDWARDS,
+    Mechanism._DES_KEY_GEN:KeyType.DES3,
+}
 '''
     END MECHANISM SECTION
 '''
@@ -53,7 +30,7 @@ END_SECTION_LINE = "\n"+COLUMN_SEPARATOR*COLUMN_WIDTH+"\n"
 REQS_POR_LINHA = 8
 
 # configurações do mutex
-SLEEP_THREAD_TIME = 2
+SLEEP_THREAD_TIME = 0.4 # segundos
 '''
     END GENERAL SECTION
 '''

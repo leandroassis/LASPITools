@@ -23,6 +23,8 @@ class Ensaio():
         
         lock_acquired.acquire()
         print(f" Requisito {self.test_label} ".center(COLUMN_WIDTH, COLUMN_SEPARATOR))
+        print()
+        
         try:
             if self.type == "card":
                 REQUISITOS_CARTAO[self.test_label](token=tokens[lock_acquired], pin=self.pin, puk=self.puk)
