@@ -1,8 +1,7 @@
 import pkcs11
 from pkcs11.constants import MechanismFlag
 from pkcs11.mechanisms import Mechanism
-import random as rd
-from time import sleep
+from pkcs11 import SecretKey, PrivateKey, PublicKey
 
 from .defines import APPROVED_MECHANISMS
 from src.Utils import AcessDestroyKeys
@@ -46,14 +45,16 @@ def testsAccessObjects(token : pkcs11.Token, pin : str = "1234", puk : str = "12
                                                                 label=label, \
                                                                 store=False, mechanism=mechanism, \
                                                                 key_length = mech_info.max_key_length)
-                    user_keys.append(secret_key)
+                    if isinstance(secret_key, SecretKey):
+                        user_keys.append(secret_key)
                 elif MechanismFlag.GENERATE_KEY_PAIR in mech_info.flags:
                     public_key, private_key = user_session.generate_keypair(APPROVED_MECHANISMS[mechanism], \
                                                                    label=label, \
                                                                    store=False, mechanism=mechanism, \
                                                                    key_length = mech_info.max_key_length)
-                    user_keys.append(private_key)
-                    user_keys.append(public_key)
+                    if isinstance(private_key, PrivateKey) and isinstance(public_key, PublicKey):
+                        user_keys.append(private_key)
+                        user_keys.append(public_key)
 
                 print(f"Chave \"{label}\" gerada com o mecanismo {str(mechanism)}.")
             except pkcs11.exceptions.MechanismInvalid:

@@ -1,5 +1,5 @@
 from pkcs11.mechanisms import Mechanism
-from pkcs11.mechanisms import KeyType
+from pkcs11 import KeyType
 
 '''
     MECHANISM SECTION
